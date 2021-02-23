@@ -2,11 +2,13 @@ const bouncer = require("express-bouncer")(500, 900000); // importation du paque
 const express = require('express'); // importation du paquet express
 const router = express.Router(); // création du router
 
+const usersCtrl = require('../controllers/users')
+
 const auth = require('../middleware/auth')
 const verifyPassword = require('../middleware/verify-password')
 const verifyPasswordUpdate = require('../middleware/verify-password-update')
 
-router.post('/signup', verifyPassword) //Création d'un utilisateur
+router.post('/signup', verifyPassword, usersCtrl.signup) //Création d'un utilisateur
 router.post('/login', bouncer.block) //connexion d'un utilisateur
 router.get('/:id', auth) //Recupération d'un utilisateur
 router.put('/update', auth, verifyPasswordUpdate) //Mise à jour d'un utilisateur

@@ -5,6 +5,8 @@ const path = require('path')
 const helmet = require('helmet')
 const sanitizeMiddleware = require('sanitize-middleware')
 
+const usersRoutes = require('./routes/users')
+
 const app = express()
 app.use(helmet())
 
@@ -20,5 +22,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 app.use('/images', express.static(path.join(__dirname, 'images')))
+
+app.use("/users", usersRoutes)
 
 module.exports = app

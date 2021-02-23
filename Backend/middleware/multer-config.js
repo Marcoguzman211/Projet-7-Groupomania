@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
 module.exports = multer({
     storage: storage,
     fileFilter: function(req, file, callback) {
-        var ext = path.extname(file.originalname);
+        let ext = path.extname(file.originalname);
         if (ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
             return callback(new Error('Le format du fichier est invalide'))
         }
