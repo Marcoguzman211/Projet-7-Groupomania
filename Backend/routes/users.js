@@ -11,7 +11,7 @@ const verifyPasswordUpdate = require('../middleware/verify-password-update')
 router.post('/signup', verifyPassword, usersCtrl.signup) //Création d'un utilisateur
 router.post('/login', bouncer.block, usersCtrl.login) //connexion d'un utilisateur
 router.get('/:id', auth, usersCtrl.getOneUser) //Recupération d'un utilisateur
-router.put('/update', auth, verifyPasswordUpdate) //Mise à jour d'un utilisateur
-router.delete('/:id', auth) //supression d'un utilisateur
+router.put('/update', auth, verifyPasswordUpdate, usersCtrl.updateOneUser) //Mise à jour d'un utilisateur
+router.delete('/:id', auth, usersCtrl.deleteOneUser) //supression d'un utilisateur
 
 module.exports = router
