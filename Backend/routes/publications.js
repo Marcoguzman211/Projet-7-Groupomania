@@ -9,5 +9,6 @@ const multer = require('../middleware/multer-config')
 router.post('/', auth, multer, publiCrtl.createPublication)
 router.get('/', auth, publiCrtl.getAllPublications)
 router.get('/:id', auth, publiCrtl.getOnePublication)
+router.delete('/:id', auth, publiCrtl.deletePublication)
 
 module.exports = router

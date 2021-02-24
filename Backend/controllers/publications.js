@@ -94,3 +94,71 @@ exports.getOnePublication = (req, res, next) => {
         }
     })
 }
+
+exports.deletePublication = (req, res, next) => {
+    const tokenInfos = decodeToken(req)
+    const userId = tokenInfos[0]
+    const access_level = tokenInfos[1]
+    const publicationId = req.params.id
+
+    if (access_level === 1) {
+        let firstSql = "SELECT image_url FROM publications WHERE id = ?"
+        let secondSql = "DELETE FROM publications WHERE id = ?"
+        let inserts = [publicationId]
+        firstSql = mysql.format(firstSql, inserts)
+        secondSql = mysql.format(secondSql, inserts)
+        let role = "Modérateur"
+
+        const publicationImageUrl = db.query(firstSql, (error, image) => {
+            if (!error) {
+                if (image[0].image_url.startsWith('http://localhost:3000')) {
+                    const file = image[0].image_url.split("/images/")[1]
+                    fs.unlink(`images/${filename}`, () => {})
+                }
+                const publicationDelete = db.query(secondSql, (error, result) => {
+                    if (!error) {
+                        if (result.affectedRows === 0) {
+                            res.status(400).json({ message: "Vous n'êtes pas autorisé à supprimer cette publication" })
+                        } else {
+                            res.status(200).json({ message: "La publication a été supprimé !" + "( " + role + ")" })
+                        }
+                    } else {
+                        res.status(400).json({ message: "Une erreur est survenue, la publication n'a pas été supprimé" })
+                    }
+                })
+            } else {
+                res.status(400).json({ message: "Une erreur est survenue, la publication n'a pas été trouvée" })
+            }
+        })
+    } else {
+        let firstSql = "SELECT image_url FROM publications WHERE id = ?"
+        let secondSql = "DELETE FROM publications WHERE id = ? AND user_id = ?"
+        let firstInserts = [publicationId]
+        let secondInserts = [publicationId, userId]
+        firstSql = mysql.format(firstSql, firstInserts)
+        secondSql = mysql.format(secondSql, secondInserts)
+        let role = "Utilisateur"
+
+        const publicationImageUrl = db.query(firstSql, (error, image) => {
+            if (!error) {
+                if (image[0].image_url.startsWith('http://localhost:3000')) {
+                    const file = image[0].image_url.split("/images/")[1]
+                    fs.unlink(`images/${filename}`, () => {})
+                }
+                const publicationDelete = db.query(secondSql, (error, result) => {
+                    if (!error) {
+                        if (result.affectedRows === 0) {
+                            res.status(400).json({ message: "Vous n'êtes pas autorisé à supprimer cette publication" })
+                        } else {
+                            res.status(200).json({ message: "La publication a été supprimé !" + "( " + role + ")" })
+                        }
+                    } else {
+                        res.status(400).json({ message: "Une erreur est survenue, la publication n'a pas été supprimé" })
+                    }
+                })
+            } else {
+                res.status(400).json({ message: "Une erreur est survenue, la publication n'a pas été trouvée" })
+            }
+        })
+    }
+}
