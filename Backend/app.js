@@ -3,7 +3,6 @@ const express = require('express') //Importation du package express
 const bodyParser = require('body-parser') //BodyParser pour convertir les réponses en JSON exploitable
 const path = require('path')
 const helmet = require('helmet')
-const sanitizeMiddleware = require('sanitize-middleware')
 
 const usersRoutes = require('./routes/users')
 const publicationsRoutes = require('./routes/publications')

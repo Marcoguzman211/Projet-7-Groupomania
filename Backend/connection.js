@@ -1,10 +1,9 @@
 const mysql = require('mysql')
 const { mysql_database } = require('./config')
-const { connect } = require('./routes/publications')
 
-const connection = mysql.createConnection(mysql_database)
+const db = mysql.createConnection(mysql_database)
 
-connection.connect((err, conn) => {
+db.connect((err, conn) => {
     if (err) {
         console.error('error: ' + err.message)
     } else {
@@ -12,3 +11,5 @@ connection.connect((err, conn) => {
         return conn
     }
 })
+
+module.exports = db

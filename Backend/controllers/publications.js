@@ -4,7 +4,7 @@ const mysql = require('mysql')
 const jwt = require('jsonwebtoken')
 const querystring = require('querystring') //Package pour parser/formater les requêtes URL
 
-const db = require('../connection')
+const db = require("../connection")
 dotenv.config()
 
 let decodeToken = function(req) {
@@ -47,6 +47,7 @@ exports.createPublication = (req, res, next) => {
         let inserts = [userId, titre, description, imageUrl]
         sql = mysql.format(sql, inserts)
 
+
         const publicationCreate = db.query(sql, (error, publication) => {
             if (!error) {
                 res.status(201).json({ message: "La publication a été enregistrée !" })
@@ -64,7 +65,7 @@ exports.getAllPublications = (req, res, next) => {
     let offset = 10
 
     offset = offset * (page - 1)
-    let sql = "SELECT user.id, user.nom, user.prenom, publication.id, publication.titre, publication.description, publication.image_url FROM publications AS publication JOIN users AS user ON publication.user_id = user.id"
+    let sql = "SELECT user.id, user.nom, user.prenom, publication.id, publication.titre, publication.description, publication.image_url, publication.creation_date FROM publications AS publication JOIN users AS user ON publication.user_id = user.id"
     sql = mysql.format(sql)
 
     const getPublications = db.query(sql, (error, publications) => {
@@ -81,7 +82,7 @@ exports.getOnePublication = (req, res, next) => {
     const userId = tokenInfos[0]
     const publicationId = req.params.id
 
-    let firstSql = "SELECT user.id, user.nom, user.prenom, publication.id, publication.titre, publication.description, publication.image_url FROM publications as publication JOIN users AS user ON publication.user_id = user.id WHERE publication.id = ? GROUP BY publication.id"
+    let firstSql = "SELECT user.id, user.nom, user.prenom, publication.id, publication.titre, publication.description, publication.image_url, publication.creation_date FROM publications as publication JOIN users AS user ON publication.user_id = user.id WHERE publication.id = ? GROUP BY publication.id"
     const firstInserts = [publicationId]
     firstSql = mysql.format(firstSql, firstInserts)
 
