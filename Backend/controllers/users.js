@@ -46,8 +46,8 @@ exports.signup = (req, res, next) => {
     }
 }
 exports.login = (req, res, next) => {
-    const email = req.body.email,
-        password = req.body.password
+    const email = req.body.email
+    const password = req.body.password
 
     if (validator.isEmail(String(email))) {
         let sql = "SELECT id, email, password, access_level FROM users WHERE email = ?"
@@ -58,8 +58,8 @@ exports.login = (req, res, next) => {
             if (error) {
                 return res.status(400).json({ error: "Votre email n'est pas valide" })
             }
-            if (user.lenght == 0) {
-                res.status(400).json({ eror: "Une erreur est survenue, l'utilisateur n'a pa été trouvé." })
+            if (user.length == 0) {
+                return res.status(400).json({ error: "Une erreur est survenue, l'utilisateur n'a pa été trouvé." })
             }
             bcrypt.compare(password, user[0].password).then((valid) => {
                 if (!valid) {
@@ -73,6 +73,8 @@ exports.login = (req, res, next) => {
                 })
             })
         })
+    } else {
+        return res.status(400).json({ error: 'Votre email est invalide !' })
     }
 }
 
