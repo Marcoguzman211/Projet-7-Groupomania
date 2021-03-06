@@ -65,7 +65,7 @@ exports.getAllPublications = (req, res, next) => {
     let offset = 10
 
     offset = offset * (page - 1)
-    let sql = "SELECT user.id, user.nom, user.prenom, publication.id, publication.titre, publication.description, publication.image_url, publication.creation_date FROM publications AS publication JOIN users AS user ON publication.user_id = user.id"
+    let sql = "SELECT user.id, user.nom, user.prenom, publication.id, publication.titre, publication.description, publication.image_url, publication.creation_date FROM publications AS publication JOIN users AS user ON publication.user_id = user.id ORDER BY publication.creation_date DESC"
     sql = mysql.format(sql)
 
     const getPublications = db.query(sql, (error, publications) => {
@@ -121,7 +121,7 @@ exports.deletePublication = (req, res, next) => {
                         if (result.affectedRows === 0) {
                             res.status(400).json({ message: "Vous n'êtes pas autorisé à supprimer cette publication" })
                         } else {
-                            res.status(200).json({ message: "La publication a été supprimé !" + "( " + role + ")" })
+                            res.status(200).json({ message: "La publication a été supprimé !" + "(" + role + ")" })
                         }
                     } else {
                         res.status(400).json({ message: "Une erreur est survenue, la publication n'a pas été supprimé" })
@@ -151,7 +151,7 @@ exports.deletePublication = (req, res, next) => {
                         if (result.affectedRows === 0) {
                             res.status(400).json({ message: "Vous n'êtes pas autorisé à supprimer cette publication" })
                         } else {
-                            res.status(200).json({ message: "La publication a été supprimé !" + "( " + role + ")" })
+                            res.status(200).json({ message: "La publication a été supprimé !" + "(" + role + ")" })
                         }
                     } else {
                         res.status(400).json({ message: "Une erreur est survenue, la publication n'a pas été supprimé" })
