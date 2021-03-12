@@ -82,7 +82,7 @@ exports.getOnePublication = (req, res, next) => {
     const userId = tokenInfos[0]
     const publicationId = req.params.id
 
-    let firstSql = "SELECT user.id, user.nom, user.prenom, publication.id, publication.titre, publication.description, publication.image_url, publication.creation_date FROM publications as publication JOIN users AS user ON publication.user_id = user.id WHERE publication.id = ? GROUP BY publication.id"
+    let firstSql = "SELECT user.id, user.nom, user.prenom, publication.id, publication.user_id, publication.titre, publication.description, publication.image_url, publication.creation_date FROM publications as publication JOIN users AS user ON publication.user_id = user.id WHERE publication.id = ? GROUP BY publication.id"
     const firstInserts = [publicationId]
     firstSql = mysql.format(firstSql, firstInserts)
 
