@@ -105,11 +105,11 @@ exports.updateOneUser = (req, res, next) => {
     const tokenInfos = decodeToken(req)
     const userId = tokenInfos[0]
 
-    let nom = req.body.nom,
-        prenom = req.body.prenom,
-        bio = req.body.bio,
-        password = req.body.password,
-        newPassword = req.body.newpassword
+    const nom = req.body.nom
+    const prenom = req.body.prenom
+    const bio = req.body.bio
+    const password = req.body.password
+    const newPassword = req.body.newpassword
 
     if (!password && !newPassword) {
         let sql = "UPDATE users SET nom = ?, prenom = ?, bio = ? WHERE id = ?"
@@ -132,18 +132,24 @@ exports.updateOneUser = (req, res, next) => {
             if (error) {
                 res.status(400).json({ error: "Une erreur est survenue, utilisateur non trouvé !" })
             } else {
-                bcrypt.hash(newPassword, 10, (error, hash) => {
-                    let sql = "UPDATE users SET nom = ?, prenom = ?, bio = ?, password = ? WHERE id = ?"
-                    let inserts = [nom, prenom, bio, hash, userId]
-                    sql = mysql.format(sql, inserts)
+                bcrypt.compare(password, result[0].password).then((valid) => {
+                    if (!valid) {
+                        res.status(400).json({ error: 'Mot de passe actuel invalide !' })
+                    } else {
+                        bcrypt.hash(newPassword, 10, (error, hash) => {
+                            let sql = "UPDATE users SET nom = ?, prenom = ?, bio = ?, password = ? WHERE id = ?"
+                            let inserts = [nom, prenom, bio, hash, userId]
+                            sql = mysql.format(sql, inserts)
 
-                    const userUpdateWithNewPassword = db.query(sql, (error, result) => {
-                        if (error) {
-                            res.status(400).json({ error: "La mise à jour du profil a échouée !" })
-                        } else {
-                            res.status(200).json({ message: "Les informations, dont le mot de passe, ont été mises à jour !" })
-                        }
-                    })
+                            const userUpdateWithNewPassword = db.query(sql, (error, result) => {
+                                if (error) {
+                                    res.status(400).json({ error: "La mise à jour du profil a échouée !" })
+                                } else {
+                                    res.status(200).json({ message: "Les informations, dont le mot de passe, ont été mises à jour !" })
+                                }
+                            })
+                        })
+                    }
                 })
             }
         })
