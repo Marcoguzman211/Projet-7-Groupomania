@@ -7,7 +7,11 @@
  3. Copier le fichier `backend.env` dans les livrables et veuillez le placer dans le dossier `Backend` et modifiez à l'intérieur : 
 
 > DB_USER=`votre utilisateur`
+
+
 > DB_PASSWORD=`le mot de passe de l'utilisateur`
+
+
 > DB_NAME=`nom de la base de données (si autre que groupodb)`
 
  4. Renommez le fichier `backend.env` en `.env`
