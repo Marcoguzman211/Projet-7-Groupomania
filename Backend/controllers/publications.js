@@ -113,7 +113,7 @@ exports.deletePublication = (req, res, next) => {
         const publicationImageUrl = db.query(firstSql, (error, image) => {
             if (!error) {
                 if (image[0].image_url.startsWith('http://localhost:3000')) {
-                    const file = image[0].image_url.split("/images/")[1]
+                    const filename = image[0].image_url.split("/images/")[1]
                     fs.unlink(`images/${filename}`, () => {})
                 }
                 const publicationDelete = db.query(secondSql, (error, result) => {
