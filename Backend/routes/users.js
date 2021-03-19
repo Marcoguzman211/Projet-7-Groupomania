@@ -5,8 +5,8 @@ const router = express.Router(); // création du router
 const usersCtrl = require('../controllers/users')
 
 const auth = require('../middleware/auth')
-const verifyPassword = require('../middleware/verify-password')
-const verifyPasswordUpdate = require('../middleware/verify-password-update')
+const verifyPassword = require('../middleware/verify-password') //Middleware pour vérifier le bon format du mot de passe
+const verifyPasswordUpdate = require('../middleware/verify-password-update') //Middleware pour vérifier le bon format du mot de passe (modification)
 
 router.post('/signup', verifyPassword, usersCtrl.signup) //Création d'un utilisateur
 router.post('/login', bouncer.block, usersCtrl.login) //connexion d'un utilisateur

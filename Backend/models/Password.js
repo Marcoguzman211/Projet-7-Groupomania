@@ -2,6 +2,7 @@ const passwordValidator = require('password-validator')
 
 const passwordSchema = new passwordValidator()
 
+//Définition du schema à respecter pour créer un mot de passe avec le module password-validator
 passwordSchema
     .is().min(8)
     .has().uppercase()

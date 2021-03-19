@@ -7,7 +7,7 @@ const helmet = require('helmet')
 const usersRoutes = require('./routes/users')
 const publicationsRoutes = require('./routes/publications')
 
-const app = express()
+const app = express() //Initialisation du serveur express
 app.use(helmet())
 
 // middleware général appliqué à toute les requêtes (CORS)
@@ -23,6 +23,7 @@ app.use(bodyParser.json())
 
 app.use('/images', express.static(path.join(__dirname, 'images')))
 
+//Routes à demander par le frontend
 app.use("/users", usersRoutes)
 app.use("/publications", publicationsRoutes)
 
