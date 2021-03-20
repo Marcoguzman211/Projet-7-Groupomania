@@ -2,11 +2,11 @@ const dotenv = require('dotenv')
 const fs = require('fs') //Importation du package fs pour la gestion des fichiers
 const mysql = require('mysql')
 const jwt = require('jsonwebtoken')
-const querystring = require('querystring') //Package pour parser/formater les requêtes URL
 
 const db = require("../connection")
 dotenv.config()
 
+//Fonctionalité qui decode le token envoyé par le frontend
 let decodeToken = function(req) {
     let token = req.headers.authorization.split(' ')[1]
     let decodedToken = jwt.verify(token, process.env.JWT_AUTH_SECRET_TOKEN)
@@ -14,6 +14,7 @@ let decodeToken = function(req) {
     return decodedToken
 }
 
+//Fonctionalité pour créer une publication
 exports.createPublication = (req, res, next) => {
     const tokenInfos = decodeToken(req)
     const userId = tokenInfos[0]
@@ -22,6 +23,7 @@ exports.createPublication = (req, res, next) => {
     const description = req.body.description
     const image_url = req.body.imageUrl
 
+    //Si l'utilisateur met en ligne une image on la stocke dans le dossier images
     if (req.file != undefined) {
         const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         let sql = "INSERT INTO publications (user_id, titre, description, image_url) VALUES (?,?,?,?)"
@@ -36,12 +38,8 @@ exports.createPublication = (req, res, next) => {
             }
         })
     } else {
-        let imageUrl
-        if (image_url) {
-            imageUrl = image_url
-        } else {
-            imageUrl = ""
-        }
+        //Sinon on laisse à vide l'image_url dans la bdd
+        let imageUrl = ''
 
         let sql = "INSERT INTO publications (user_id, titre, description, image_url) VALUES (?, ?, ?, ?)"
         let inserts = [userId, titre, description, imageUrl]
@@ -58,13 +56,12 @@ exports.createPublication = (req, res, next) => {
     }
 }
 
+//Fonction pour envoyer toutes les publications de la base de données au frontend, rangés par date de publication
 exports.getAllPublications = (req, res, next) => {
     const tokenInfos = decodeToken(req)
     const userId = tokenInfos[0]
     const page = req.query.page
-    let offset = 10
 
-    offset = offset * (page - 1)
     let sql = "SELECT user.id, user.nom, user.prenom, publication.id, publication.titre, publication.description, publication.image_url, publication.creation_date FROM publications AS publication JOIN users AS user ON publication.user_id = user.id ORDER BY publication.creation_date DESC"
     sql = mysql.format(sql)
 
@@ -77,6 +74,7 @@ exports.getAllPublications = (req, res, next) => {
     })
 }
 
+//Fonction pour afficher la publication choisie dans le Home coté frontend avec les paramètres de l'URL
 exports.getOnePublication = (req, res, next) => {
     const tokenInfos = decodeToken(req)
     const userId = tokenInfos[0]
@@ -96,13 +94,14 @@ exports.getOnePublication = (req, res, next) => {
     })
 }
 
+//Fonction pour effacer une publication avec les notions de modérateur et utilisateur commun
 exports.deletePublication = (req, res, next) => {
     const tokenInfos = decodeToken(req)
     const userId = tokenInfos[0]
     const access_level = tokenInfos[1]
     const publicationId = req.params.id
 
-    if (access_level === 1) {
+    if (access_level === 1) { //Quand l'utilisateur est un modérateur
         let firstSql = "SELECT image_url FROM publications WHERE id = ?"
         let secondSql = "DELETE FROM publications WHERE id = ?"
         let inserts = [publicationId]
@@ -131,7 +130,7 @@ exports.deletePublication = (req, res, next) => {
                 res.status(400).json({ message: "Une erreur est survenue, la publication n'a pas été trouvée" })
             }
         })
-    } else {
+    } else { //Quand l'utilisateur est seulement propietaire de la publication
         let firstSql = "SELECT image_url FROM publications WHERE id = ?"
         let secondSql = "DELETE FROM publications WHERE id = ? AND user_id = ?"
         let firstInserts = [publicationId]

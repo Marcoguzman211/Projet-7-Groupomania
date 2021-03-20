@@ -1,13 +1,14 @@
 const dotenv = require('dotenv')
 const validator = require('validator')
 const mysql = require('mysql')
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt') //Module pour encoder les mot de passe et ne pas les enregistrer en clair dans la bdd
+const jwt = require('jsonwebtoken') //Module pour générer ou gérer les tokens d'authentification
 
-const db = require('../connection')
+const db = require('../connection') //On appelle le fichier js qui traite la connexion à la base de données
 
 dotenv.config()
 
+//Fonctionalité qui decode le token envoyé par le frontend
 let decodeToken = function(req) {
     let token = req.headers.authorization.split(' ')[1]
     let decodedToken = jwt.verify(token, process.env.JWT_AUTH_SECRET_TOKEN)
@@ -15,6 +16,7 @@ let decodeToken = function(req) {
     return decodedToken;
 }
 
+//Fonction pour créer un utilisateur
 exports.signup = (req, res, next) => {
     const nom = req.body.nom,
         prenom = req.body.prenom,
@@ -32,6 +34,7 @@ exports.signup = (req, res, next) => {
                 if (!error) {
                     res.status(201).json({
                         message: "L'utilisateur a été créé avec succès",
+                        //On génère un token qui permet à l'utilisateur de se connecter directement lors de la création du compte
                         token: jwt.sign({ userId: user.insertId, access_level: 0 },
                             process.env.JWT_AUTH_SECRET_TOKEN, { expiresIn: process.env.JWT_EXPIRATION }
                         )
@@ -45,6 +48,8 @@ exports.signup = (req, res, next) => {
         return res.status(400).json({ error: "Votre email est invalide !" })
     }
 }
+
+//Fonction pour se connecter
 exports.login = (req, res, next) => {
     const email = req.body.email
     const password = req.body.password
@@ -61,6 +66,7 @@ exports.login = (req, res, next) => {
             if (user.length == 0) {
                 return res.status(400).json({ error: "Une erreur est survenue, l'utilisateur n'a pa été trouvé." })
             }
+            //Si l'utilisateur est trouvé, on compare avec bcrypt les mot de passe (frontend et bdd)
             bcrypt.compare(password, user[0].password).then((valid) => {
                 if (!valid) {
                     return res.status(400).json({ error: "Mot de passe invalide !" })
@@ -78,6 +84,7 @@ exports.login = (req, res, next) => {
     }
 }
 
+//Fonction pour afficher le profil dans le frontend
 exports.getOneUser = (req, res, next) => {
     const tokenInfos = decodeToken(req)
     const userId = tokenInfos[0]
@@ -101,6 +108,7 @@ exports.getOneUser = (req, res, next) => {
     }
 }
 
+//Fonction pour mettre à jour le profil dans la base de données
 exports.updateOneUser = (req, res, next) => {
     const tokenInfos = decodeToken(req)
     const userId = tokenInfos[0]
@@ -111,6 +119,7 @@ exports.updateOneUser = (req, res, next) => {
     const password = req.body.password
     const newPassword = req.body.newpassword
 
+    //Mise à jour sans nouveau mot de passe
     if (!password && !newPassword) {
         let sql = "UPDATE users SET nom = ?, prenom = ?, bio = ? WHERE id = ?"
         let inserts = [nom, prenom, bio, userId]
@@ -124,6 +133,7 @@ exports.updateOneUser = (req, res, next) => {
             }
         })
     } else {
+        //Fonctionalité pour mettre à jour le mot de passe de l'utilisateur
         let sql = "SELECT password FROM users WHERE id = ?"
         let inserts = [userId]
         sql = mysql.format(sql, inserts)
@@ -136,6 +146,7 @@ exports.updateOneUser = (req, res, next) => {
                     if (!valid) {
                         res.status(400).json({ error: 'Mot de passe actuel invalide !' })
                     } else {
+                        //Hash du nouveau mot de passe pour pas l'enregistrer en clair
                         bcrypt.hash(newPassword, 10, (error, hash) => {
                             let sql = "UPDATE users SET nom = ?, prenom = ?, bio = ?, password = ? WHERE id = ?"
                             let inserts = [nom, prenom, bio, hash, userId]
@@ -156,6 +167,7 @@ exports.updateOneUser = (req, res, next) => {
     }
 }
 
+//Fonction pour effacer l'utilisateur
 exports.deleteOneUser = (req, res, next) => {
     const tokenInfos = decodeToken(req)
     const userId = tokenInfos[0]
