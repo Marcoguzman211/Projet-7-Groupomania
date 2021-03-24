@@ -56,6 +56,47 @@ exports.createPublication = (req, res, next) => {
     }
 }
 
+//Fonctionalité pour MODIFIER une publication
+exports.updatePublication = (req, res, next) => {
+    const tokenInfos = decodeToken(req)
+    const userId = tokenInfos[0]
+
+    const publicationId = req.body.publicationId
+    const titre = req.body.titre
+    const description = req.body.description
+    const image_url = req.body.imageUrl
+
+    //Si l'utilisateur met en ligne une image on la stocke dans le dossier images
+    if (req.file != undefined) {
+        const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        let sql = "UPDATE publications SET titre = ?, description = ?, image_url = ? WHERE id = ?"
+        let inserts = [titre, description, imageUrl, publicationId]
+        sql = mysql.format(sql, inserts)
+
+        const publicationCreate = db.query(sql, (error, publication) => {
+            if (!error) {
+                res.status(201).json({ message: "La publication a été modifiée !" })
+            } else {
+                res.status(400).json({ message: "Une erreur est survenue, la publication n'a pas été modifiée !" })
+            }
+        })
+    } else {
+        //Sans nouvelle image
+        let sql = "UPDATE publications SET titre = ?, description = ? WHERE id = ?"
+        let inserts = [titre, description, publicationId]
+        sql = mysql.format(sql, inserts)
+
+
+        const publicationCreate = db.query(sql, (error, publication) => {
+            if (!error) {
+                res.status(201).json({ message: "La publication a été modifiée !" })
+            } else {
+                res.status(400).json({ message: "Une erreur est survenue, la publication n'a pas été modifié" })
+            }
+        })
+    }
+}
+
 //Fonction pour envoyer toutes les publications de la base de données au frontend, rangés par date de publication
 exports.getAllPublications = (req, res, next) => {
     const tokenInfos = decodeToken(req)

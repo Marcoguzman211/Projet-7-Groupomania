@@ -12,5 +12,6 @@ router.get('/:id', auth, publiCrtl.getOnePublication)
 router.delete('/:id', auth, publiCrtl.deletePublication)
 router.post('/commentaire', auth, publiCrtl.commentPublication)
 router.delete('/commentaire/:id', auth, publiCrtl.deleteComment)
+router.put('/update', auth, multer, publiCrtl.updatePublication)
 
 module.exports = router
