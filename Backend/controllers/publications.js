@@ -81,17 +81,93 @@ exports.getOnePublication = (req, res, next) => {
     const publicationId = req.params.id
 
     let firstSql = "SELECT user.id, user.nom, user.prenom, publication.id, publication.user_id, publication.titre, publication.description, publication.image_url, publication.creation_date FROM publications as publication JOIN users AS user ON publication.user_id = user.id WHERE publication.id = ? GROUP BY publication.id"
+    let secondSql = 'SELECT user.id, user.nom, user.prenom, commentaire.id, commentaire.user_id, commentaire.creation_date, commentaire.message FROM commentaires AS commentaire JOIN users AS user ON commentaire.user_id = user.id WHERE publication_id = ? GROUP BY commentaire.id ORDER BY commentaire.creation_date'
+
     const firstInserts = [publicationId]
     firstSql = mysql.format(firstSql, firstInserts)
+
+    const secondInserts = [publicationId]
+    secondSql = mysql.format(secondSql, secondInserts)
 
     const getOnePublication = db.query(firstSql, (error, result) => {
         if (!error) {
             let publication = result;
-            res.status(201).json({ publication })
+            const getOnePublicationCommentaires = db.query(secondSql, (error, result) => {
+                if (!error) {
+                    const commentaires = result
+                    const finalResponse = {
+                        publication: publication,
+                        commentaires: commentaires
+                    }
+                    res.status(201).json(finalResponse)
+                }
+            })
         } else {
             res.status(400).json({ error: "Une erreur est survenue, aucune publication trouvée !" })
         }
     })
+}
+
+exports.commentPublication = (req, res, next) => {
+
+    const tokenInfos = decodeToken(req) // on utilise la fonction decodeToken
+    const userId = tokenInfos[0] // on obtient le UserId du token
+
+    const publicationId = req.body.publicationId // on récupère l'id de la publication
+    const message = req.body.message // on extrait le message du commentaire
+
+    let sql = "INSERT INTO commentaires (user_id, publication_id, message) VALUES (?, ?, ?)" // préparation de la requete SQL
+    let inserts = [userId, publicationId, message] // utilisation des valeurs à insérer
+    sql = mysql.format(sql, inserts) // assemblage final de la requête
+
+    const commentaireCreate = db.query(sql, (error, result) => { // envoi de la requête a la base de données
+        if (!error) {
+            res.status(201).json({ message: "Le commentaire a bien été créé" })
+        } else {
+            res.status(400).json({ message: "Une erreur est survenue, le commentaire n'a pas été créé" })
+        }
+    })
+}
+
+exports.deleteComment = (req, res, next) => {
+
+    const tokenInfos = decodeToken(req)
+    const userId = tokenInfos[0] // on obtient le UserId du token
+    const access_level = tokenInfos[1] // on obtient le niveau d'acces du token
+
+    const commentaireId = req.params.id // on récupère l'id du commentaire
+
+    if (access_level === 1) { // si le niveau d'acces est 1 (Modérateur)
+        let sql = "DELETE FROM commentaires WHERE id = ?" // préparation de la requete SQL
+        let inserts = [commentaireId] // utilisation des valeurs à insérer
+        sql = mysql.format(sql, inserts) // assemblage final de la requête
+        let role = "Modérateur"
+
+        const commentaireDelete = db.query(sql, (error, result) => { // envoi de la requête a la base de données
+            if (!error) {
+                res.status(200).json({ message: "Le commentaire a été supprimé !" + " (" + role + ")" })
+            } else {
+                res.status(400).json({ message: "Une erreur est survenue, le commentaire n'a pas été supprimé" })
+            }
+        });
+    } else {
+        let sql = "DELETE FROM commentaires WHERE id = ? AND user_id = ?"
+        let inserts = [commentaireId, userId] // utilisation des valeurs à insérer
+        sql = mysql.format(sql, inserts) // assemblage final de la requête
+        let role = "Utilisateur"
+
+        const commentaireDelete = db.query(sql, (error, result) => { // envoi de la requête a la base de données
+            if (!error) {
+                if (result.affectedRows === 0) {
+                    res.status(400).json({ message: "Vous n'êtes pas autorisé à supprimer ce commentaire !" })
+                } else {
+                    res.status(200).json({ message: "Le commentaire a été supprimé !" + " (" + role + ")" })
+                }
+            } else {
+                res.status(400).json({ message: "Une erreur est survenue, le commentaire n'a pas été supprimé" })
+            }
+        })
+    }
 }
 
 //Fonction pour effacer une publication avec les notions de modérateur et utilisateur commun
